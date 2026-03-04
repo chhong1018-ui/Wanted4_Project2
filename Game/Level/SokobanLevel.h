@@ -2,6 +2,7 @@
 
 #include "Level/Level.h"
 #include "Interface/ICanPlayerMove.h"
+#include "Navigation/Astar.h"
 
 class SokobanLevel 
 	: public Wanted::Level, 
@@ -34,4 +35,9 @@ private:
 
 	// 게임 클리어 여부를 알려주는 변수.
 	bool isGameClear = false;
+
+private:
+	Wanted::AStar aStar;
+	std::vector<Wanted::Vector2> shortesPath;
+	Wanted::Vector2 exitPosition;
 };

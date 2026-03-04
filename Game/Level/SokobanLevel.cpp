@@ -4,6 +4,7 @@
 #include "Actor/Ground.h"
 #include "Actor/Box.h"
 #include "Actor/Target.h"
+#include "Actor/Other.h"
 #include "Util/Util.h"
 
 #include <iostream>
@@ -152,6 +153,7 @@ void SokobanLevel::LoadMap(const char* filename)
 			std::cout << "-";
 		case '*':
 			std::cout << "*";
+			AddNewActor(new Other(position));
 		}
 
 		// x 좌표 증가 처리.

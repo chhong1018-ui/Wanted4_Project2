@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClCompile Include="Actor\Box.cpp" />
     <ClCompile Include="Actor\Ground.cpp" />
+    <ClCompile Include="Actor\Other.cpp" />
     <ClCompile Include="Actor\Player.cpp" />
     <ClCompile Include="Actor\Target.cpp" />
     <ClCompile Include="Actor\Wall.cpp" />
@@ -164,6 +165,7 @@
   <ItemGroup>
     <ClInclude Include="Actor\Box.h" />
     <ClInclude Include="Actor\Ground.h" />
+    <ClInclude Include="Actor\Other.h" />
     <ClInclude Include="Actor\Player.h" />
     <ClInclude Include="Actor\Target.h" />
     <ClInclude Include="Actor\Wall.h" />
