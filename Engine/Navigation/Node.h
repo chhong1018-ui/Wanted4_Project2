@@ -7,8 +7,8 @@ namespace Wanted
 	class Node
 	{
 	public:
-		Node(int x, int y, Node* parentNode = nullptr)
-			: position(static_cast<float>(x), static_cast<float>(y)), parentNode(parentNode)
+		Node(Vector2 pos, Node* parentNode = nullptr)
+			: position(pos), parentNode(parentNode), gCost(0), hCost(0), fCost(0)
 		{
 		}
 

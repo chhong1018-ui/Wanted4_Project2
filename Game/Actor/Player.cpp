@@ -1,7 +1,6 @@
 #include "Player.h"
 #include "Core/Input.h"
 #include "Engine/Engine.h"
-#include "Actor/Box.h"
 #include "Level/Level.h"
 
 #include "Game/Game.h"
@@ -52,11 +51,11 @@ void Player::Tick(float deltaTime)
 	// vk->virtual key.
 	if (Input::Get().GetKeyDown(VK_SPACE))
 	{
-		// 박스 생성.
-		if (owner)
-		{
-			owner->AddNewActor(new Box(GetPosition()));
-		}
+		//// 박스 생성.
+		//if (owner)
+		//{
+		//	owner->AddNewActor(new Box(GetPosition()));
+		//}
 	}
 
 	// 인터페이스 확인.
@@ -70,7 +69,7 @@ void Player::Tick(float deltaTime)
 	}
 
 	// 이동.
-	if (Input::Get().GetKeyDown(VK_RIGHT) && GetPosition().x < 20)
+	if (Input::Get().GetKey(VK_RIGHT))
 	{
 		// 이동 가능 여부 판단.
 		Vector2 newPosition(GetPosition().x + 1, GetPosition().y);
@@ -84,7 +83,7 @@ void Player::Tick(float deltaTime)
 		//SetPosition(newPosition);
 	}
 
-	if (Input::Get().GetKeyDown(VK_LEFT) && GetPosition().x > 0)
+	if (Input::Get().GetKey(VK_LEFT))
 	{
 		// 이동 가능 여부 판단.
 		Vector2 newPosition(GetPosition().x - 1, GetPosition().y);
@@ -98,7 +97,7 @@ void Player::Tick(float deltaTime)
 		//SetPosition(newPosition);
 	}
 
-	if (Input::Get().GetKeyDown(VK_DOWN) && GetPosition().y < 15)
+	if (Input::Get().GetKey(VK_DOWN))
 	{
 		// 이동 가능 여부 판단.
 		Vector2 newPosition(GetPosition().x, GetPosition().y + 1);
@@ -112,7 +111,7 @@ void Player::Tick(float deltaTime)
 		//SetPosition(newPosition);
 	}
 
-	if (Input::Get().GetKeyDown(VK_UP) && GetPosition().y > 0)
+	if (Input::Get().GetKey(VK_UP))
 	{
 		// 이동 가능 여부 판단.
 		Vector2 newPosition(GetPosition().x, GetPosition().y - 1);
