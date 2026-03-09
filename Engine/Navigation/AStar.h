@@ -36,6 +36,11 @@ namespace Wanted
 
 		void ClearLists();
 
+	public:
+
+		//탐색 결과로 최단 경로와 방문 순서 리스트를 함께 반환하도록
+		std::vector<Vector2> GetVisitedNodes() const { return visitedNodes; }
+
 	private:
 		// 객체 지향 이론에서 -> 메소드(Method) - 비공개 멤버 함수.
 
@@ -62,6 +67,9 @@ namespace Wanted
 
 		// 닫힌 리스트.
 		std::vector<Node*> closedList;
+
+		// 탐색 순서를 저장할 리스트.
+		std::vector<Vector2> visitedNodes;
 
 		// 시작 노드.
 		Node* startNode = nullptr;

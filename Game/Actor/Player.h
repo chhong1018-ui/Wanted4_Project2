@@ -15,4 +15,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float deltaTime) override;
 	virtual void Draw() override;
+
+	float moveTimer = 0.0f;
+	float moveCooldown = 0.1f;
 };

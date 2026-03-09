@@ -5,6 +5,7 @@
 #include "Actor/Target.h"
 #include "Util/Util.h"
 #include "Render/Renderer.h"
+#include "Core/Input.h"
 
 #include <iostream>
 
@@ -34,6 +35,25 @@ void SokobanLevel::Draw()
 		// 콘솔 위치/색상 설정.
 		Wanted::Renderer::Get().Submit("Game Clear!", Vector2(30, 0), Color::Green, 100);
 	}
+
+	if (bshowAStar)
+	{
+		// 방문 노드 차례대로 출력.
+		auto visited = aStar.GetVisitedNodes();
+		if (bIsFirstSearch)
+		{
+			for (int ix = 0; ix < visitedIndex && ix < (int)visited.size(); ++ix)
+			{
+				Renderer::Get().Submit("x", visited[ix], Color::Blue, 1);
+			}
+		}
+		// 최단 경로 차례대로 출력.
+		for (int ix = 0; ix < pathIndex && ix < (int)shortestPath.size(); ++ix)
+		{
+			Renderer::Get().Submit("o", shortestPath[ix], Color::Green, 1);
+		}
+
+	}
 }
 
 void SokobanLevel::LoadMap(const char* filename)
@@ -41,7 +61,7 @@ void SokobanLevel::LoadMap(const char* filename)
 	// 파일 로드.
 	// 최종 파일 경로 만들기. ("../Assets/filename")
 	char path[2048] = {};
-	sprintf_s(path, 2048, "../Assets/%s", filename);
+	sprintf_s(path, 2048,   "../Assets/%s", filename);
 
 	// 파일 열기.
 	FILE* file = nullptr;
@@ -226,7 +246,7 @@ bool SokobanLevel::CanMove(
 	//	//boxActor->SetPosition(newPosition);
 
 		// 게임 점수 확인.
-		isGameClear = CheckGameClear();
+	isGameClear = CheckGameClear();
 
 	//	// 플레이어 이동 가능.
 	//	return true;
@@ -298,4 +318,102 @@ bool SokobanLevel::CheckGameClear()
 	//// 목표 점수에 도달했는지 확인.
 	//return currentScore == targetScore;
 	return false;
+}
+
+std::vector<std::vector<int>> SokobanLevel::GetGridMap()
+{
+	int targetMaxX = 0;
+	int targetMaxY = 0;
+
+	for (auto* actor : actors)
+	{
+		Vector2 pos = actor->GetPosition();
+		if (pos.x > targetMaxX) targetMaxX = (int)pos.x;
+		if (pos.y > targetMaxY) targetMaxY = (int)pos.y;
+	}
+
+	int rows = targetMaxY + 1;
+	int cols = targetMaxX + 1;
+
+	if (rows <= 0) rows = 1;
+	if (cols <= 0) cols = 1;
+
+	std::vector<std::vector<int>> grid(rows, std::vector<int>(cols, 0));
+
+	for (auto* actor : actors)
+	{
+		if (actor->IsTypeOf<Wall>())
+		{
+			Wanted::Vector2 pos = actor->GetPosition();
+			grid[(int)pos.y][(int)pos.x] = 1;
+		}
+	}
+
+	return grid;
+}
+
+void SokobanLevel::Tick(float deltaTime)
+{
+
+	super::Tick(deltaTime);
+
+	// 토글 스위치
+	if (Wanted::Input::Get().GetKeyDown(VK_SPACE))
+	{
+		bshowAStar = !bshowAStar;
+		bIsFirstSearch = true;
+		visualTimer = 0.0f;
+		visitedIndex = 0;
+		pathIndex = 0;
+	}
+
+	if (bshowAStar)
+	{
+		Player* player = nullptr;
+		Target* target = nullptr;
+
+		for (auto* actor : actors)
+		{
+			if (actor->IsTypeOf<Player>()) player = (Player*)actor;
+			if (actor->IsTypeOf<Target>()) target = (Target*)actor;
+		}
+
+		if (player && target)
+		{
+			auto grid = GetGridMap();
+			Vector2 playerPos = player->GetPosition();
+			Vector2 targetPos = target->GetPosition();
+
+			std::vector<Vector2> newPath = aStar.FindPath(playerPos, targetPos, grid);
+
+			shortestPath = newPath;
+
+			if (bIsFirstSearch)
+			{
+				visualTimer += deltaTime;
+				if (visualTimer > 0.01f)
+				{
+					visualTimer = 0.0f;
+					if (visitedIndex < (int)aStar.GetVisitedNodes().size())
+					{
+						visitedIndex++;
+					}
+					else if (pathIndex < (int)shortestPath.size())
+					{
+						pathIndex++;
+					}
+					else
+					{
+						// 애니메이션 종료.
+						bIsFirstSearch = false;
+					}
+				}
+			}
+			else
+			{
+				visitedIndex = (int)aStar.GetVisitedNodes().size();
+				pathIndex = (int)shortestPath.size();
+			}
+		}
+	}
 }

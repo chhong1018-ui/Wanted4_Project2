@@ -49,14 +49,14 @@ void Player::Tick(float deltaTime)
 
 	// 스페이스로 박스 생성.
 	// vk->virtual key.
-	if (Input::Get().GetKeyDown(VK_SPACE))
-	{
-		//// 박스 생성.
-		//if (owner)
-		//{
-		//	owner->AddNewActor(new Box(GetPosition()));
-		//}
-	}
+	//if (Input::Get().GetKeyDown(VK_SPACE))
+	//{
+	//	// 박스 생성.
+	//	if (owner)
+	//	{
+	//		owner->AddNewActor(new Box(GetPosition()));
+	//	}
+	//}
 
 	// 인터페이스 확인.
 	static ICanPlayerMove* canPlayerMoveInterface = nullptr;
@@ -69,60 +69,71 @@ void Player::Tick(float deltaTime)
 	}
 
 	// 이동.
-	if (Input::Get().GetKey(VK_RIGHT))
+	moveTimer += deltaTime;
+	if (moveTimer >= moveCooldown)
 	{
-		// 이동 가능 여부 판단.
-		Vector2 newPosition(GetPosition().x + 1, GetPosition().y);
-		if (canPlayerMoveInterface->CanMove(GetPosition(), newPosition))
+		if (Input::Get().GetKey(VK_RIGHT))
 		{
-			SetPosition(newPosition);
+			// 이동 가능 여부 판단.
+			Vector2 newPosition(GetPosition().x + 1, GetPosition().y);
+			if (canPlayerMoveInterface->CanMove(GetPosition(), newPosition))
+			{
+				SetPosition(newPosition);
+			}
+
+			moveTimer = 0.0f;
+
+			//Vector2 newPosition = GetPosition();
+			//newPosition.x += 1;
+			//SetPosition(newPosition);
+		}
+		if (Input::Get().GetKey(VK_LEFT))
+		{
+			// 이동 가능 여부 판단.
+			Vector2 newPosition(GetPosition().x - 1, GetPosition().y);
+			if (canPlayerMoveInterface->CanMove(GetPosition(), newPosition))
+			{
+				SetPosition(newPosition);
+			}
+
+			moveTimer = 0.0f;
+
+			//Vector2 newPosition = GetPosition();
+			//newPosition.x -= 1;
+			//SetPosition(newPosition);
 		}
 
-		//Vector2 newPosition = GetPosition();
-		//newPosition.x += 1;
-		//SetPosition(newPosition);
-	}
-
-	if (Input::Get().GetKey(VK_LEFT))
-	{
-		// 이동 가능 여부 판단.
-		Vector2 newPosition(GetPosition().x - 1, GetPosition().y);
-		if (canPlayerMoveInterface->CanMove(GetPosition(), newPosition))
+		if (Input::Get().GetKey(VK_DOWN))
 		{
-			SetPosition(newPosition);
+			// 이동 가능 여부 판단.
+			Vector2 newPosition(GetPosition().x, GetPosition().y + 1);
+			if (canPlayerMoveInterface->CanMove(GetPosition(), newPosition))
+			{
+				SetPosition(newPosition);
+			}
+
+			moveTimer = 0.0f;
+
+			//Vector2 newPosition = GetPosition();
+			//newPosition.y += 1;
+			//SetPosition(newPosition);
 		}
 
-		//Vector2 newPosition = GetPosition();
-		//newPosition.x -= 1;
-		//SetPosition(newPosition);
-	}
-
-	if (Input::Get().GetKey(VK_DOWN))
-	{
-		// 이동 가능 여부 판단.
-		Vector2 newPosition(GetPosition().x, GetPosition().y + 1);
-		if (canPlayerMoveInterface->CanMove(GetPosition(), newPosition))
+		if (Input::Get().GetKey(VK_UP))
 		{
-			SetPosition(newPosition);
+			// 이동 가능 여부 판단.
+			Vector2 newPosition(GetPosition().x, GetPosition().y - 1);
+			if (canPlayerMoveInterface->CanMove(GetPosition(), newPosition))
+			{
+				SetPosition(newPosition);
+			}
+
+			moveTimer = 0.0f;
+
+			//Vector2 newPosition = GetPosition();
+			//newPosition.y -= 1;
+			//SetPosition(newPosition);
 		}
-
-		//Vector2 newPosition = GetPosition();
-		//newPosition.y += 1;
-		//SetPosition(newPosition);
-	}
-
-	if (Input::Get().GetKey(VK_UP))
-	{
-		// 이동 가능 여부 판단.
-		Vector2 newPosition(GetPosition().x, GetPosition().y - 1);
-		if (canPlayerMoveInterface->CanMove(GetPosition(), newPosition))
-		{
-			SetPosition(newPosition);
-		}
-
-		//Vector2 newPosition = GetPosition();
-		//newPosition.y -= 1;
-		//SetPosition(newPosition);
 	}
 }
 

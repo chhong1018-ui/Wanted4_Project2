@@ -55,6 +55,7 @@ namespace Wanted
 	{
 		// 탐색 시작 전 이전 데이터 청소.
 		ClearLists();
+		visitedNodes.clear();
 
 		// 시작/목표 노드 저장.
 		startNode = new Node(startPos);
@@ -92,6 +93,8 @@ namespace Wanted
 
 			// fCost가 가장 낮은 노드를 현재 노드로 설정.
 			Node* currentNode = lowestNode;
+
+			visitedNodes.push_back(currentNode->position);
 
 			// 현재 노드가 목표 노드인지 확인.
 			if (currentNode->position.x == goalPos.x && currentNode->position.y == goalPos.y)
