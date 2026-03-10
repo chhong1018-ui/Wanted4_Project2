@@ -10,16 +10,16 @@
 #include <iostream>
 
 /*
-#: º®(Wall)
-.: ¹Ù´Ú(Ground)
-p: ÇÃ·¹ÀÌ¾î(Player)
-b: ¹Ú½º(Box)
-t: Å¸°Ù(Target)
+#: ë²½(Wall)
+.: ë°”ë‹¥(Ground)
+p: í”Œë ˆì´ì–´(Player)
+b: ë°•ìŠ¤(Box)
+t: íƒ€ê²Ÿ(Target)
 */
 
 SokobanLevel::SokobanLevel()
 {
-	// TestActor ¾×ÅÍ¸¦ ·¹º§¿¡ Ãß°¡.
+	// TestActor ì•¡í„°ë¥¼ ë ˆë²¨ì— ì¶”ê°€.
 	//AddNewActor(new Player());
 	//LoadMap("Map.txt");
 	LoadMap("court.txt");
@@ -29,16 +29,16 @@ void SokobanLevel::Draw()
 {
 	super::Draw();
 
-	// °ÔÀÓ Å¬¸®¾îÀÎ °æ¿ì. ¸Ş½ÃÁö Ãâ·Â.
+	// ê²Œì„ í´ë¦¬ì–´ì¸ ê²½ìš°. ë©”ì‹œì§€ ì¶œë ¥.
 	if (isGameClear)
 	{
-		// ÄÜ¼Ö À§Ä¡/»ö»ó ¼³Á¤.
+		// ì½˜ì†” ìœ„ì¹˜/ìƒ‰ìƒ ì„¤ì •.
 		Wanted::Renderer::Get().Submit("Game Clear!", Vector2(30, 0), Color::Green, 100);
 	}
 
 	if (bshowAStar)
 	{
-		// ¹æ¹® ³ëµå Â÷·Ê´ë·Î Ãâ·Â.
+		// ë°©ë¬¸ ë…¸ë“œ ì°¨ë¡€ëŒ€ë¡œ ì¶œë ¥.
 		auto visited = aStar.GetVisitedNodes();
 		if (bIsFirstSearch)
 		{
@@ -47,10 +47,16 @@ void SokobanLevel::Draw()
 				Renderer::Get().Submit("x", visited[ix], Color::Blue, 1);
 			}
 		}
-		// ÃÖ´Ü °æ·Î Â÷·Ê´ë·Î Ãâ·Â.
+		// ìµœë‹¨ ê²½ë¡œ ì°¨ë¡€ëŒ€ë¡œ ì¶œë ¥.
 		for (int ix = 0; ix < pathIndex && ix < (int)shortestPath.size(); ++ix)
 		{
 			Renderer::Get().Submit("o", shortestPath[ix], Color::Green, 1);
+		}
+
+		// A* ì „ìš© ëª©í‘œ ë§ˆì»¤ ì¶œë ¥. (Target(T) sortingOrderê°€ ë” ë†’ì•„ì„œ ê²¹ì¹˜ë©´ Tê°€ ë³´ì„)
+		if (hasMouseGoal)
+		{
+			Renderer::Get().Submit("G", mouseGoalPos, Color::Red, 2);
 		}
 
 	}
@@ -58,78 +64,78 @@ void SokobanLevel::Draw()
 
 void SokobanLevel::LoadMap(const char* filename)
 {
-	// ÆÄÀÏ ·Îµå.
-	// ÃÖÁ¾ ÆÄÀÏ °æ·Î ¸¸µé±â. ("../Assets/filename")
+	// íŒŒì¼ ë¡œë“œ.
+	// ìµœì¢… íŒŒì¼ ê²½ë¡œ ë§Œë“¤ê¸°. ("../Assets/filename")
 	char path[2048] = {};
 	sprintf_s(path, 2048,   "../Assets/%s", filename);
 
-	// ÆÄÀÏ ¿­±â.
+	// íŒŒì¼ ì—´ê¸°.
 	FILE* file = nullptr;
 	fopen_s(&file, path, "rt");
 
-	// ¿¹¿Ü Ã³¸®.
+	// ì˜ˆì™¸ ì²˜ë¦¬.
 	if (!file)
 	{
-		// Ç¥ÁØ ¿À·ù ÄÜ¼Ö È°¿ë.
+		// í‘œì¤€ ì˜¤ë¥˜ ì½˜ì†” í™œìš©.
 		std::cerr << "Failed to open map file.\n";
 
-		// µğ¹ö±× ¸ğµå¿¡¼­ Áß´ÜÁ¡À¸·Î Áß´ÜÇØÁÖ´Â ±â´É.
+		// ë””ë²„ê·¸ ëª¨ë“œì—ì„œ ì¤‘ë‹¨ì ìœ¼ë¡œ ì¤‘ë‹¨í•´ì£¼ëŠ” ê¸°ëŠ¥.
 		__debugbreak();
 	}
 
-	// ¸Ê ÀĞ±â.
-	// ¸Ê Å©±â ÆÄ¾Ç: File Position Æ÷ÀÎÅÍ¸¦ ÆÄÀÏÀÇ ³¡À¸·Î ÀÌµ¿.
+	// ë§µ ì½ê¸°.
+	// ë§µ í¬ê¸° íŒŒì•…: File Position í¬ì¸í„°ë¥¼ íŒŒì¼ì˜ ëìœ¼ë¡œ ì´ë™.
 	fseek(file, 0, SEEK_END);
 
-	// ÀÌ À§Ä¡ ÀĞ±â.
+	// ì´ ìœ„ì¹˜ ì½ê¸°.
 	size_t fileSize = ftell(file);
 
-	// File Position Ã³À½À¸·Î µÇµ¹¸®±â.
+	// File Position ì²˜ìŒìœ¼ë¡œ ë˜ëŒë¦¬ê¸°.
 	rewind(file);
 
-	// ÆÄÀÏ¿¡¼­ µ¥ÀÌÅÍ¸¦ ÀĞ¾î¿Ã ¹öÆÛ »ı¼º.
+	// íŒŒì¼ì—ì„œ ë°ì´í„°ë¥¼ ì½ì–´ì˜¬ ë²„í¼ ìƒì„±.
 	char* data = new char[fileSize + 1];
 
-	// µ¥ÀÌÅÍ ÀĞ±â.
+	// ë°ì´í„° ì½ê¸°.
 	size_t readSize = fread(data, sizeof(char), fileSize, file);
 
-	// ÀĞ¾î¿Â ¹®ÀÚ¿­À» ºĞ¼®(ÆÄ½Ì-Parsing)ÇØ¼­ Ãâ·Â.
-	// ÀÎµ¦½º¸¦ »ç¿ëÇØ ÇÑ¹®ÀÚ¾¿ ÀĞ±â.
+	// ì½ì–´ì˜¨ ë¬¸ìì—´ì„ ë¶„ì„(íŒŒì‹±-Parsing)í•´ì„œ ì¶œë ¥.
+	// ì¸ë±ìŠ¤ë¥¼ ì‚¬ìš©í•´ í•œë¬¸ìì”© ì½ê¸°.
 	int index = 0;
 
-	// °´Ã¼¸¦ »ı¼ºÇÒ À§Ä¡ °ª.
+	// ê°ì²´ë¥¼ ìƒì„±í•  ìœ„ì¹˜ ê°’.
 	Wanted::Vector2 position;
 
 	while (true)
 	{
-		// Á¾·á Á¶°Ç.
+		// ì¢…ë£Œ ì¡°ê±´.
 		if (index >= fileSize)
 		{
 			break;
 		}
 
-		// Ä³¸¯ÅÍ ÀĞ±â.
+		// ìºë¦­í„° ì½ê¸°.
 		char mapCharacter = data[index];
 		++index;
 
-		// °³Çà ¹®ÀÚ Ã³¸®.
+		// ê°œí–‰ ë¬¸ì ì²˜ë¦¬.
 		if (mapCharacter == '\n')
 		{
 			//std::cout << "\n";
-			// yÁÂÇ¥´Â ÇÏ³ª ´Ã¸®°í, x ÁÂÇ¥ ÃÊ±âÈ­.
+			// yì¢Œí‘œëŠ” í•˜ë‚˜ ëŠ˜ë¦¬ê³ , x ì¢Œí‘œ ì´ˆê¸°í™”.
 			++position.y;
 			position.x = 0;
 			continue;
 		}
 
 		/*
-		#: º®(Wall)
-		.: ¹Ù´Ú(Ground)
-		p: ÇÃ·¹ÀÌ¾î(Player)
-		b: ¹Ú½º(Box)
-		t: Å¸°Ù(Target)
+		#: ë²½(Wall)
+		.: ë°”ë‹¥(Ground)
+		p: í”Œë ˆì´ì–´(Player)
+		b: ë°•ìŠ¤(Box)
+		t: íƒ€ê²Ÿ(Target)
 		*/
-		// ÇÑ¹®ÀÚ¾¿ Ã³¸®.
+		// í•œë¬¸ìì”© ì²˜ë¦¬.
 		switch (mapCharacter)
 		{
 		case '#':
@@ -144,8 +150,8 @@ void SokobanLevel::LoadMap(const char* filename)
 
 		case 'p':
 			//std::cout << "P";
-			// ÇÃ·¹ÀÌ¾îµµ ÀÌµ¿ °¡´ÉÇÔ.
-			// ÇÃ·¹ÀÌ¾î ¹Ø¿¡ ¶¥ÀÌ ÀÖ¾î¾ß ÇÔ.
+			// í”Œë ˆì´ì–´ë„ ì´ë™ ê°€ëŠ¥í•¨.
+			// í”Œë ˆì´ì–´ ë°‘ì— ë•…ì´ ìˆì–´ì•¼ í•¨.
 			AddNewActor(new Player(position));
 			AddNewActor(new Ground(position));
 			break;
@@ -157,14 +163,14 @@ void SokobanLevel::LoadMap(const char* filename)
 			break;
 		}
 
-		// x ÁÂÇ¥ Áõ°¡ Ã³¸®.
+		// x ì¢Œí‘œ ì¦ê°€ ì²˜ë¦¬.
 		++position.x;
 	}
 
-	// »ç¿ëÇÑ ¹öÆÛ ÇØÁ¦.
+	// ì‚¬ìš©í•œ ë²„í¼ í•´ì œ.
 	delete[] data;
 
-	// ÆÄÀÏÀÌ Á¤»óÀûÀ¸·Î ¿­·ÈÀ¸¸é ´İ±â.
+	// íŒŒì¼ì´ ì •ìƒì ìœ¼ë¡œ ì—´ë ¸ìœ¼ë©´ ë‹«ê¸°.
 	fclose(file);
 }
 
@@ -172,14 +178,14 @@ bool SokobanLevel::CanMove(
 	const Wanted::Vector2& playerPosition,
 	const Wanted::Vector2& nextPosition)
 {
-	//// ·¹º§¿¡ ÀÖ´Â ¹Ú½º ¾×ÅÍ ¸ğÀ¸±â.
-	//// ¹Ú½º´Â ÇÃ·¹ÀÌ¾î°¡ ¹Ğ±â µî Ãß°¡ÀûÀ¸·Î Ã³¸®ÇØ¾ßÇÏ±â ¶§¹®.
+	//// ë ˆë²¨ì— ìˆëŠ” ë°•ìŠ¤ ì•¡í„° ëª¨ìœ¼ê¸°.
+	//// ë°•ìŠ¤ëŠ” í”Œë ˆì´ì–´ê°€ ë°€ê¸° ë“± ì¶”ê°€ì ìœ¼ë¡œ ì²˜ë¦¬í•´ì•¼í•˜ê¸° ë•Œë¬¸.
 	//std::vector<Actor*> boxes;
 
-	//// ·¹º§¿¡ ¹èÄ¡µÈ ÀüÃ¼ ¾×ÅÍ¸¦ ¼øÈ¸ÇÏ¸é¼­ ¹Ú½º Ã£±â.
+	//// ë ˆë²¨ì— ë°°ì¹˜ëœ ì „ì²´ ì•¡í„°ë¥¼ ìˆœíšŒí•˜ë©´ì„œ ë°•ìŠ¤ ì°¾ê¸°.
 	//for (Actor* const actor : actors)
 	//{
-	//	// ¾×ÅÍ°¡ ¹Ú½º Å¸ÀÔÀÎÁö È®ÀÎ.
+	//	// ì•¡í„°ê°€ ë°•ìŠ¤ íƒ€ì…ì¸ì§€ í™•ì¸.
 	//	if (actor->IsTypeOf<Box>())
 	//	{
 	//		boxes.emplace_back(actor);
@@ -187,11 +193,11 @@ bool SokobanLevel::CanMove(
 	//	}
 	//}
 
-	//// ÀÌµ¿ÇÏ·Á´Â À§Ä¡¿¡ ¹Ú½º°¡ ÀÖ´ÂÁö È®ÀÎ.
+	//// ì´ë™í•˜ë ¤ëŠ” ìœ„ì¹˜ì— ë°•ìŠ¤ê°€ ìˆëŠ”ì§€ í™•ì¸.
 	//Actor* boxActor = nullptr;
 	//for (Actor* const box : boxes)
 	//{
-	//	// À§Ä¡ ºñ±³.
+	//	// ìœ„ì¹˜ ë¹„êµ.
 	//	if (box->GetPosition() == nextPosition)
 	//	{
 	//		boxActor = box;
@@ -199,64 +205,64 @@ bool SokobanLevel::CanMove(
 	//	}
 	//}
 
-	//// °æ¿ìÀÇ ¼ö Ã³¸®.
-	//// ÀÌµ¿ÇÏ·Á´Â °÷¿¡ ¹Ú½º°¡ ÀÖ´Â °æ¿ì.
+	//// ê²½ìš°ì˜ ìˆ˜ ì²˜ë¦¬.
+	//// ì´ë™í•˜ë ¤ëŠ” ê³³ì— ë°•ìŠ¤ê°€ ìˆëŠ” ê²½ìš°.
 	//if (boxActor)
 	//{
-	//	// #1: ¹Ú½º¸¦ ÀÌµ¿½ÃÅ°·Á´Â À§Ä¡¿¡ ´Ù¸¥ ¹Ú½º°¡ ¶Ç ÀÖ´ÂÁö È®ÀÎ.
-	//	// µÎ À§Ä¡ »çÀÌ¿¡¼­ ÀÌµ¿ ¹æÇâ ±¸ÇÏ±â (º¤ÅÍÀÇ »¬¼À È°¿ë).
-	//	// ÀÌµ¿ ·ÎÁ÷¿¡¼­ µÎ º¤ÅÍ¸¦ ´õÇÑ´Ù´Â °ÍÀº
-	//	// µÑ Áß ÇÏ³ª´Â À§Ä¡(Location)ÀÌ°í ´Ù¸¥ ÇÏ³ª´Â º¤ÅÍ(Vector).
+	//	// #1: ë°•ìŠ¤ë¥¼ ì´ë™ì‹œí‚¤ë ¤ëŠ” ìœ„ì¹˜ì— ë‹¤ë¥¸ ë°•ìŠ¤ê°€ ë˜ ìˆëŠ”ì§€ í™•ì¸.
+	//	// ë‘ ìœ„ì¹˜ ì‚¬ì´ì—ì„œ ì´ë™ ë°©í–¥ êµ¬í•˜ê¸° (ë²¡í„°ì˜ ëº„ì…ˆ í™œìš©).
+	//	// ì´ë™ ë¡œì§ì—ì„œ ë‘ ë²¡í„°ë¥¼ ë”í•œë‹¤ëŠ” ê²ƒì€
+	//	// ë‘˜ ì¤‘ í•˜ë‚˜ëŠ” ìœ„ì¹˜(Location)ì´ê³  ë‹¤ë¥¸ í•˜ë‚˜ëŠ” ë²¡í„°(Vector).
 	//	Vector2 direction = nextPosition - playerPosition;
 	//	Vector2 newPosition = boxActor->GetPosition() + direction;
 
-	//	// ¹Ú½º °Ë»ö.
+	//	// ë°•ìŠ¤ ê²€ìƒ‰.
 	//	for (Actor* const otherBox : boxes)
 	//	{
-	//		// ¾Õ¿¡¼­ °Ë»öÇÑ ¹Ú½º¿Í °°´Ù¸é °Ç³Ê¶Ù±â.
+	//		// ì•ì—ì„œ ê²€ìƒ‰í•œ ë°•ìŠ¤ì™€ ê°™ë‹¤ë©´ ê±´ë„ˆë›°ê¸°.
 	//		if (otherBox == boxActor)
 	//		{
 	//			continue;
 	//		}
 
-	//		// ´Ù¸¥ ¹Ú½º°¡ ÀÖ´ÂÁö È®ÀÎ.
+	//		// ë‹¤ë¥¸ ë°•ìŠ¤ê°€ ìˆëŠ”ì§€ í™•ì¸.
 	//		if (otherBox->GetPosition() == newPosition)
 	//		{
-	//			// µÎ °³ÀÇ ¹Ú½º°¡ °ãÃÄÁø ¹æÇâÀ¸·Î´Â ÀÌµ¿ ¸øÇÔ.
+	//			// ë‘ ê°œì˜ ë°•ìŠ¤ê°€ ê²¹ì³ì§„ ë°©í–¥ìœ¼ë¡œëŠ” ì´ë™ ëª»í•¨.
 	//			return false;
 	//		}
 	//	}
 
-	//	// °Ë»ö.
+	//	// ê²€ìƒ‰.
 	//	for (Actor* const actor : actors)
 	//	{
 	//		if (actor->GetPosition() == newPosition)
 	//		{
-	//			// #2: º®ÀÌ¸é ÀÌµ¿ ºÒ°¡.
+	//			// #2: ë²½ì´ë©´ ì´ë™ ë¶ˆê°€.
 	//			if (actor->IsTypeOf<Wall>())
 	//			{
 	//				return false;
 	//			}
 
-	//			// #3: ±×¶ó¿îµå ¶Ç´Â Å¸°ÙÀÌ¸é ÀÌµ¿ °¡´É.
+	//			// #3: ê·¸ë¼ìš´ë“œ ë˜ëŠ” íƒ€ê²Ÿì´ë©´ ì´ë™ ê°€ëŠ¥.
 	//if (actor->IsTypeOf<Ground>()
 	//	|| actor->IsTypeOf<Target>())
 	//{
-	//	//// ¹Ú½º ÀÌµ¿ Ã³¸®.
+	//	//// ë°•ìŠ¤ ì´ë™ ì²˜ë¦¬.
 	//	//boxActor->SetPosition(newPosition);
 
-		// °ÔÀÓ Á¡¼ö È®ÀÎ.
+		// ê²Œì„ ì ìˆ˜ í™•ì¸.
 	isGameClear = CheckGameClear();
 
-	//	// ÇÃ·¹ÀÌ¾î ÀÌµ¿ °¡´É.
+	//	// í”Œë ˆì´ì–´ ì´ë™ ê°€ëŠ¥.
 	//	return true;
 	//}
 	//	}
 	//}
 //}
 
-// ÀÌµ¿ÇÏ·Á´Â °÷¿¡ ¹Ú½º°¡ ¾ø´Â °æ¿ì.
-// -> ÀÌµ¿ÇÏ·Á´Â °÷¿¡ ÀÖ´Â ¾×ÅÍ°¡ º®ÀÌ ¾Æ´Ï¸é ÀÌµ¿ °¡´É.
+// ì´ë™í•˜ë ¤ëŠ” ê³³ì— ë°•ìŠ¤ê°€ ì—†ëŠ” ê²½ìš°.
+// -> ì´ë™í•˜ë ¤ëŠ” ê³³ì— ìˆëŠ” ì•¡í„°ê°€ ë²½ì´ ì•„ë‹ˆë©´ ì´ë™ ê°€ëŠ¥.
 	if (isGameClear)
 	{
 		return false;
@@ -264,21 +270,21 @@ bool SokobanLevel::CanMove(
 
 	for (Actor* const actor : actors)
 	{
-		// ¸ÕÀú, ÀÌµ¿ÇÏ·Á´Â À§Ä¡¿¡ ÀÖ´Â ¾×ÅÍ °Ë»ö.
+		// ë¨¼ì €, ì´ë™í•˜ë ¤ëŠ” ìœ„ì¹˜ì— ìˆëŠ” ì•¡í„° ê²€ìƒ‰.
 		if (actor->GetPosition() == nextPosition)
 		{
-			// ÀÌ ¾×ÅÍ°¡ º®ÀÎÁö È®ÀÎ.
+			// ì´ ì•¡í„°ê°€ ë²½ì¸ì§€ í™•ì¸.
 			if (actor->IsTypeOf<Wall>())
 			{
 				return false;
 			}
 
-			// ±×¶ó¿îµå ¶Ç´Â Å¸°Ù.
+			// ê·¸ë¼ìš´ë“œ ë˜ëŠ” íƒ€ê²Ÿ.
 			return true;
 		}
 	}
 
-	// ¿¡·¯.
+	// ì—ëŸ¬.
 	return false;
 }
 
@@ -286,7 +292,7 @@ bool SokobanLevel::CheckGameClear()
 {
 	for (Actor* const actor : actors)
 	{
-		// Å¸°ÙÀÇ °æ¿ì Å¸°Ù ¹è¿­¿¡ Ãß°¡.
+		// íƒ€ê²Ÿì˜ ê²½ìš° íƒ€ê²Ÿ ë°°ì—´ì— ì¶”ê°€.
 		if (!actor->IsTypeOf<Player>())
 		{
 			continue;
@@ -295,19 +301,19 @@ bool SokobanLevel::CheckGameClear()
 
 		Vector2 playerPosition = actor->GetPosition();
 
-		// ·¹º§¿¡ ¹èÄ¡µÈ ¹è¿­ ¼øÈ¸ÇÏ¸é¼­ µÎ ¾×ÅÍ ÇÊÅÍ¸µ.
+		// ë ˆë²¨ì— ë°°ì¹˜ëœ ë°°ì—´ ìˆœíšŒí•˜ë©´ì„œ ë‘ ì•¡í„° í•„í„°ë§.
 		for (Actor* const other : actors)
 		{
-			// Å¸°ÙÀÇ °æ¿ì Å¸°Ù ¹è¿­¿¡ Ãß°¡.
+			// íƒ€ê²Ÿì˜ ê²½ìš° íƒ€ê²Ÿ ë°°ì—´ì— ì¶”ê°€.
 			if (!other->IsTypeOf<Target>())
 			{
 				continue;
 			}
 
 
-			// Á¡¼ö È®ÀÎ (¹Ú½ºÀÇ À§Ä¡°¡ Å¸°ÙÀÇ À§Ä¡¿Í °°ÀºÁö ºñ±³).
+			// ì ìˆ˜ í™•ì¸ (ë°•ìŠ¤ì˜ ìœ„ì¹˜ê°€ íƒ€ê²Ÿì˜ ìœ„ì¹˜ì™€ ê°™ì€ì§€ ë¹„êµ).
 
-					// µÎ ¾×ÅÍÀÇ À§Ä¡°¡ °°À¸¸é °ÔÀÓ Å¬¸®¾î.
+					// ë‘ ì•¡í„°ì˜ ìœ„ì¹˜ê°€ ê°™ìœ¼ë©´ ê²Œì„ í´ë¦¬ì–´.
 			if (playerPosition == other->GetPosition())
 			{
 				return true;
@@ -315,7 +321,7 @@ bool SokobanLevel::CheckGameClear()
 		}
 	}
 
-	//// ¸ñÇ¥ Á¡¼ö¿¡ µµ´ŞÇß´ÂÁö È®ÀÎ.
+	//// ëª©í‘œ ì ìˆ˜ì— ë„ë‹¬í–ˆëŠ”ì§€ í™•ì¸.
 	//return currentScore == targetScore;
 	return false;
 }
@@ -357,14 +363,28 @@ void SokobanLevel::Tick(float deltaTime)
 
 	super::Tick(deltaTime);
 
-	// Åä±Û ½ºÀ§Ä¡
+	// í† ê¸€ ìŠ¤ìœ„ì¹˜
 	if (Wanted::Input::Get().GetKeyDown(VK_SPACE))
 	{
 		bshowAStar = !bshowAStar;
-		bIsFirstSearch = true;
-		visualTimer = 0.0f;
-		visitedIndex = 0;
-		pathIndex = 0;
+
+		// ë°©ë¬¸ ë…¸ë“œ ì¶œë ¥ì€ í† ê¸€ì„ ì²˜ìŒ ì¼°ì„ ë•Œë§Œ ì• ë‹ˆë©”ì´ì…˜ìœ¼ë¡œ ì¬ìƒ.
+		if (bshowAStar)
+		{
+			if (!bHasPlayedVisitedOnce)
+			{
+				bIsFirstSearch = true;
+				bHasPlayedVisitedOnce = true;
+			}
+			else
+			{
+				bIsFirstSearch = false;
+			}
+
+			visualTimer = 0.001f;
+			visitedIndex = 0;
+			pathIndex = 0;
+		}
 	}
 
 	if (bshowAStar)
@@ -384,16 +404,36 @@ void SokobanLevel::Tick(float deltaTime)
 			Vector2 playerPos = player->GetPosition();
 			Vector2 targetPos = target->GetPosition();
 
-			std::vector<Vector2> newPath = aStar.FindPath(playerPos, targetPos, grid);
+			// ëª©í‘œê°€ ì•„ì§ ì—†ìœ¼ë©´ ê¸°ë³¸ê°’ì€ Target ìœ„ì¹˜.
+			if (!hasMouseGoal)
+			{
+				mouseGoalPos = targetPos;
+			}
+
+			// A* í‘œì‹œ ì¤‘ì—ë§Œ ì¢Œí´ë¦­ìœ¼ë¡œ ëª©í‘œ ì§€ì •.
+			if (Wanted::Input::Get().GetMouseLeftDown())
+			{
+				Vector2 clicked = Wanted::Input::Get().GetMousePosition();
+
+				if (clicked.y >= 0 && clicked.y < (int)grid.size()
+					&& clicked.x >= 0 && clicked.x < (int)grid[0].size()
+					&& grid[(int)clicked.y][(int)clicked.x] != 1)
+				{
+					hasMouseGoal = true;
+					mouseGoalPos = clicked;
+				}
+			}
+
+			std::vector<Vector2> newPath = aStar.FindPath(playerPos, mouseGoalPos, grid);
 
 			shortestPath = newPath;
 
 			if (bIsFirstSearch)
 			{
 				visualTimer += deltaTime;
-				if (visualTimer > 0.01f)
+				if (visualTimer > 0.001f)
 				{
-					visualTimer = 0.0f;
+					visualTimer = 0.001f;
 					if (visitedIndex < (int)aStar.GetVisitedNodes().size())
 					{
 						visitedIndex++;
@@ -404,7 +444,7 @@ void SokobanLevel::Tick(float deltaTime)
 					}
 					else
 					{
-						// ¾Ö´Ï¸ŞÀÌ¼Ç Á¾·á.
+						// ì• ë‹ˆë©”ì´ì…˜ ì¢…ë£Œ.
 						bIsFirstSearch = false;
 					}
 				}

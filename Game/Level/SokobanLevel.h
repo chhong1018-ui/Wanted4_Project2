@@ -13,13 +13,12 @@ class SokobanLevel
 public:
 	SokobanLevel();
 
-	// ÀÌº¥Æ® ÇÔ¼ö ¿À¹ö¶óÀÌµå.
+	// ì´ë²¤íŠ¸ í•¨ìˆ˜ ì˜¤ë²„ë¼ì´ë“œ.
 	virtual void Draw() override;
+	virtual void Tick(float deltaTime) override;
 
-	void Tick(float deltaTime);
 private:
-
-	// °ÔÀÓ¿¡¼­ »ç¿ëÇÒ ¸ÊÀ» ·ÎµåÇÏ´Â ÇÔ¼ö.
+	// ê²Œì„ì—ì„œ ì‚¬ìš©í•  ë§µì„ ë¡œë“œí•˜ëŠ” í•¨ìˆ˜.
 	void LoadMap(const char* filename);
 
 	// Inherited via ICanPlayerMove
@@ -27,35 +26,41 @@ private:
 		const Wanted::Vector2& playerPosition,
 		const Wanted::Vector2& nextPosition) override;
 
-
-	// °ÔÀÓ Å¬¸®¾î È®ÀÎ ÇÔ¼ö.
+	// ê²Œì„ í´ë¦¬ì–´ í™•ì¸ í•¨ìˆ˜.
 	bool CheckGameClear();
 
 private:
-	// È¹µæÇØ¾ßÇÏ´Â ¸ñÇ¥ Á¡¼ö.
+	// íšë“í•´ì•¼í•˜ëŠ” ëª©í‘œ ì ìˆ˜.
 	int targetScore = 0;
 
-	// °ÔÀÓ Å¬¸®¾î ¿©ºÎ¸¦ ¾Ë·ÁÁÖ´Â º¯¼ö.
+	// ê²Œì„ í´ë¦¬ì–´ ì—¬ë¶€ë¥¼ ì•Œë ¤ì£¼ëŠ” ë³€ìˆ˜.
 	bool isGameClear = false;
 
 private:
-
-	// Åä±Û ½ºÀ§Ä¡.
+	// í† ê¸€ ìŠ¤ìœ„ì¹˜.
 	bool bshowAStar = false;
-	// Ã³À½¿¡¸¸ ¹æ¹® ³ëµå Ãâ·ÂÇÏ±â À§ÇÔ.
+
+	// ë°©ë¬¸ ë…¸ë“œ ì¶œë ¥ ì• ë‹ˆë©”ì´ì…˜ì€ í† ê¸€ì„ ì²˜ìŒ ì¼°ì„ ë•Œë§Œ 1íšŒ ì‹¤í–‰.
 	bool bIsFirstSearch = true;
-	// Ãâ·Â °£°İ Á¶Àı¿ë Å¸ÀÌ¸Ó.
+	bool bHasPlayedVisitedOnce = false;
+
+	// ì¶œë ¥ ê°„ê²© ì¡°ì ˆìš© íƒ€ì´ë¨¸.
 	float visualTimer = 0.0f;
-	// ÇöÀç Ãâ·ÂÁßÀÎ ¹æ¹® ³ëµå ÀÎµ¦½º.
+
+	// í˜„ì¬ ì¶œë ¥ì¤‘ì¸ ë°©ë¬¸ ë…¸ë“œ ì¸ë±ìŠ¤.
 	int visitedIndex = 0;
-	// ÇöÀç Ãâ·ÂÁßÀÎ ÃÖ´Ü °æ·Î ÀÎµ¦½º.
+
+	// í˜„ì¬ ì¶œë ¥ì¤‘ì¸ ìµœë‹¨ ê²½ë¡œ ì¸ë±ìŠ¤.
 	int pathIndex = 0;
 
 private:
 	Wanted::AStar aStar;
 	std::vector<Wanted::Vector2> shortestPath;
-	Wanted::Vector2 exitPosition;
 
-	// ¸Ê µ¥ÀÌÅÍ¸¦ A*¿ë 2dº¤ÅÍ·Î º¯È¯ÇÏ´Â ÇÔ¼ö.
+	// A* ì „ìš© ë§ˆìš°ìŠ¤ ëª©í‘œ ì¢Œí‘œ.
+	bool hasMouseGoal = false;
+	Wanted::Vector2 mouseGoalPos = Wanted::Vector2::Zero;
+
+	// ë§µ ë°ì´í„°ë¥¼ A*ìš© 2dë²¡í„°ë¡œ ë³€í™˜í•˜ëŠ” í•¨ìˆ˜.
 	std::vector<std::vector<int>> GetGridMap();
 };

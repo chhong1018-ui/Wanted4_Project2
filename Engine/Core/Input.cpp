@@ -1,22 +1,44 @@
-#include "Input.h"
+ï»¿#include "Input.h"
 #include <Windows.h>
 #include <iostream>
 
-// Ctrl + HomeÅ°·Î ÆÄÀÏ Á¦ÀÏ À§·Î ÀÌµ¿ °¡´É.
-// Rider´Â Çì´õ ÀÚµ¿ Ãß°¡ ÇØÁÜ.
+// Ctrl + Homeí‚¤ë¡œ íŒŒì¼ ì œì¼ ìœ„ë¡œ ì´ë™ ê°€ëŠ¥.
+// RiderëŠ” í—¤ë” ìë™ ì¶”ê°€ í•´ì¤Œ.
 namespace Wanted
 {
-	// Àü¿ª º¯¼ö ÃÊ±âÈ­.
+	// ì „ì—­ ë³€ìˆ˜ ì´ˆê¸°í™”.
 	Input* Input::instance = nullptr;
 
 	Input::Input()
 	{
-		// °´Ã¼°¡ ÃÊ±âÈ­µÇ¸é ÀÚ±â ÀÚ½ÅÀÇ ÁÖ¼Ò¸¦ ÀúÀå.
+		// ê°ì²´ê°€ ì´ˆê¸°í™”ë˜ë©´ ìê¸° ìì‹ ì˜ ì£¼ì†Œë¥¼ ì €ì¥.
 		instance = this;
+
+		// ì½˜ì†” ë§ˆìš°ìŠ¤ ì…ë ¥ í™œì„±í™” (Quick Editê°€ ì¼œì ¸ ìˆìœ¼ë©´ í´ë¦­ì´ ë¨¹í†µë  ìˆ˜ ìˆìŒ)
+		inputHandle = GetStdHandle(STD_INPUT_HANDLE);
+		if (inputHandle && inputHandle != INVALID_HANDLE_VALUE)
+		{
+			DWORD mode = 0;
+			if (GetConsoleMode((HANDLE)inputHandle, &mode))
+			{
+				previousConsoleMode = mode;
+				hasPreviousConsoleMode = true;
+
+				DWORD newMode = mode;
+				newMode |= ENABLE_MOUSE_INPUT;
+				newMode |= ENABLE_EXTENDED_FLAGS;
+				newMode &= ~ENABLE_QUICK_EDIT_MODE;
+				SetConsoleMode((HANDLE)inputHandle, newMode);
+			}
+		}
 	}
-	
+
 	Input::~Input()
 	{
+		if (hasPreviousConsoleMode && inputHandle && inputHandle != INVALID_HANDLE_VALUE)
+		{
+			SetConsoleMode((HANDLE)inputHandle, previousConsoleMode);
+		}
 	}
 
 	bool Input::GetKeyDown(int keyCode)
@@ -36,45 +58,91 @@ namespace Wanted
 		return keyStates[keyCode].isKeyDown;
 	}
 
+	Vector2 Input::GetMousePosition() const
+	{
+		return mousePosition;
+	}
+
+	bool Input::GetMouseLeftDown() const
+	{
+		return isMouseLeftDown && !wasMouseLeftDown;
+	}
+
 	Input& Input::Get()
 	{
-		// ½Ì±ÛÅÏ(Singleton).
-		// ÀÌ ÇÔ¼ö´Â ÄÜÅÙÃ÷ ÇÁ·ÎÁ§Æ®¿¡¼­ Á¢±ÙÇÔ.
-		// µû¶ó¼­ ¿£ÁøÀº ÀÌ¹Ì ÃÊ±âÈ­ ¿Ï·á »óÅÂ.
+		// ì‹±ê¸€í„´(Singleton).
+		// ì´ í•¨ìˆ˜ëŠ” ì½˜í…ì¸  í”„ë¡œì íŠ¸ì—ì„œ ì ‘ê·¼í•¨.
+		// ë”°ë¼ì„œ ì—”ì§„ì€ ì´ë¯¸ ì´ˆê¸°í™” ì™„ë£Œ ìƒíƒœ.
 		if (!instance)
 		{
 			//return *nullptr;
 			std::cout << "Error: Input::Get(). instance is null\n";
 
-			// µğ¹ö±× ¸ğµå¿¡¼­¸¸ µ¿ÀÛÇÔ.
-			// ÀÚµ¿À¸·Î Áß´ÜÁ¡ °É¸².
+			// ë””ë²„ê·¸ ëª¨ë“œì—ì„œë§Œ ë™ì‘í•¨.
+			// ìë™ìœ¼ë¡œ ì¤‘ë‹¨ì  ê±¸ë¦¼.
 			__debugbreak();
 		}
 
 		// Lazy-Pattern.
-		// ÀÌÆåÆ¼ºê C++¿¡ ³ª¿È.
+		// ì´í™í‹°ë¸Œ C++ì— ë‚˜ì˜´.
 		//static Input instance;
 		return *instance;
 	}
 
 	void Input::ProcessInput()
 	{
-		// Å° ¸¶´ÙÀÇ ÀÔ·Â ÀĞ±â.
-		// !!! ¿î¿µÃ¼Á¦°¡ Á¦°øÇÏ´Â ±â´ÉÀ» »ç¿ëÇÒ ¼ö ¹Û¿¡ ¾øÀ½.
+		// í‚¤ ë§ˆë‹¤ì˜ ì…ë ¥ ì½ê¸°.
+		// !!! ìš´ì˜ì²´ì œê°€ ì œê³µí•˜ëŠ” ê¸°ëŠ¥ì„ ì‚¬ìš©í•  ìˆ˜ ë°–ì— ì—†ìŒ.
 		for (int ix = 0; ix < 255; ++ix)
 		{
 			keyStates[ix].isKeyDown
 				= (GetAsyncKeyState(ix) & 0x8000) > 0 ? true : false;
 		}
+
+		// ì½˜ì†” ì…ë ¥ ì´ë²¤íŠ¸ë¥¼ drain í•˜ë©´ì„œ ë§ˆìš°ìŠ¤ ìƒíƒœ ê°±ì‹ .
+		if (!inputHandle || inputHandle == INVALID_HANDLE_VALUE)
+		{
+			return;
+		}
+
+		DWORD eventCount = 0;
+		if (!GetNumberOfConsoleInputEvents((HANDLE)inputHandle, &eventCount))
+		{
+			return;
+		}
+
+		while (eventCount > 0)
+		{
+			INPUT_RECORD record = {};
+			DWORD readCount = 0;
+			if (!ReadConsoleInputA((HANDLE)inputHandle, &record, 1, &readCount) || readCount == 0)
+			{
+				break;
+			}
+
+			if (record.EventType == MOUSE_EVENT)
+			{
+				const MOUSE_EVENT_RECORD& mouse = record.Event.MouseEvent;
+				mousePosition = Vector2((int)mouse.dwMousePosition.X, (int)mouse.dwMousePosition.Y);
+				isMouseLeftDown = (mouse.dwButtonState & FROM_LEFT_1ST_BUTTON_PRESSED) != 0;
+			}
+
+			if (!GetNumberOfConsoleInputEvents((HANDLE)inputHandle, &eventCount))
+			{
+				break;
+			}
+		}
 	}
-	
+
 	void Input::SavePreviousInputStates()
 	{
-		// ÇöÀç ÀÔ·Â °ªÀ» ÀÌÀü ÀÔ·Â °ªÀ¸·Î ÀúÀå.
+		// í˜„ì¬ ì…ë ¥ ê°’ì„ ì´ì „ ì…ë ¥ ê°’ìœ¼ë¡œ ì €ì¥.
 		for (int ix = 0; ix < 255; ++ix)
 		{
 			keyStates[ix].wasKeyDown
 				= keyStates[ix].isKeyDown;
 		}
+
+		wasMouseLeftDown = isMouseLeftDown;
 	}
 }

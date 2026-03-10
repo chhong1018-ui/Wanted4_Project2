@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common/Common.h"
+#include "Math/Vector2.h"
 
 namespace Wanted
 {
@@ -8,14 +9,14 @@ namespace Wanted
 	{
 		friend class Engine;
 
-		// µ¥ÀÌÅÍ.
+		// ë°ì´í„°.
 		// Down/Up/Key
 		struct KeyState
 		{
-			// ÇöÀç Å°°¡ ´­·È´ÂÁö.
+			// í˜„ì¬ í‚¤ê°€ ëˆŒë ¸ëŠ”ì§€.
 			bool isKeyDown = false;
 
-			// ÀÌÀü¿¡ Å°°¡ ´­·È´ÂÁö.
+			// ì´ì „ì— í‚¤ê°€ ëˆŒë ¸ëŠ”ì§€.
 			bool wasKeyDown = false;
 		};
 
@@ -24,31 +25,45 @@ namespace Wanted
 		~Input();
 
 	public:
-		// ÀÔ·Â È®ÀÎ ÇÔ¼ö.
-		// ÀÌÀü¿¡ ÀÔ·ÂÀÌ ¾ÈµÆ´Âµ¥, ÇöÀç ÀÔ·ÂÀÌ µÆÀ¸¸é 1¹ø È£Ãâ.
+		// ì…ë ¥ í™•ì¸ í•¨ìˆ˜.
+		// ì´ì „ì— ì…ë ¥ì´ ì•ˆëëŠ”ë°, í˜„ì¬ ì…ë ¥ì´ ëìœ¼ë©´ 1ë²ˆ í˜¸ì¶œ.
 		bool GetKeyDown(int keyCode);
 
-		// ÀÌÀü¿¡ ÀÔ·ÂÀÌ µÆ´Âµ¥, ÇöÀç ÀÔ·ÂÀÌ Ãë¼ÒµÆÀ¸¸é 1¹ø È£Ãâ.
+		// ì´ì „ì— ì…ë ¥ì´ ëëŠ”ë°, í˜„ì¬ ì…ë ¥ì´ ì·¨ì†Œëìœ¼ë©´ 1ë²ˆ í˜¸ì¶œ.
 		bool GetKeyUp(int keyCode);
 
-		// ÇöÀç ´­·ÁÀÖÀ¸¸é ¹İº¹ È£Ãâ.
+		// í˜„ì¬ ëˆŒë ¤ìˆìœ¼ë©´ ë°˜ë³µ í˜¸ì¶œ.
 		bool GetKey(int keyCode);
 
-		// Àü¿ªÀûÀ¸·Î Á¢±ÙÇÏ´Â ÇÔ¼ö.
+		// ì½˜ì†” ë§ˆìš°ìŠ¤ ì…ë ¥ (ë¬¸ì ì…€ ì¢Œí‘œ ê¸°ì¤€)
+		Vector2 GetMousePosition() const;
+		bool GetMouseLeftDown() const;
+
+		// ì „ì—­ì ìœ¼ë¡œ ì ‘ê·¼í•˜ëŠ” í•¨ìˆ˜.
 		static Input& Get();
 
 	private:
-		// ÀÔ·Â Ã³¸® ÇÔ¼ö.
+		// ì…ë ¥ ì²˜ë¦¬ í•¨ìˆ˜.
 		void ProcessInput();
 
-		// ±âÁ¸ ÀÔ·Â ÀúÀå ÇÔ¼ö.
+		// ê¸°ì¡´ ì…ë ¥ ì €ì¥ í•¨ìˆ˜.
 		void SavePreviousInputStates();
 
 	private:
-		// Å° »óÅÂ ÀúÀå¿ë ¹è¿­.
+		// í‚¤ ìƒíƒœ ì €ì¥ìš© ë°°ì—´.
 		KeyState keyStates[255] = { };
 
-		// Àü¿ªÀûÀ¸·Î Á¢±ÙÇÏµµ·Ï ¸¸µé±â À§ÇÑ Àü¿ª º¯¼ö.
+		// ë§ˆìš°ìŠ¤ ìƒíƒœ.
+		Vector2 mousePosition = Vector2::Zero;
+		bool isMouseLeftDown = false;
+		bool wasMouseLeftDown = false;
+
+		// ì½˜ì†” ì…ë ¥ í•¸ë“¤/ëª¨ë“œ.
+		void* inputHandle = nullptr;
+		unsigned long previousConsoleMode = 0;
+		bool hasPreviousConsoleMode = false;
+
+		// ì „ì—­ì ìœ¼ë¡œ ì ‘ê·¼í•˜ë„ë¡ ë§Œë“¤ê¸° ìœ„í•œ ì „ì—­ ë³€ìˆ˜.
 		static Input* instance;
 	};
 }
