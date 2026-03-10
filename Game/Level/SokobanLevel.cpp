@@ -67,7 +67,7 @@ void SokobanLevel::LoadMap(const char* filename)
 	// 파일 로드.
 	// 최종 파일 경로 만들기. ("../Assets/filename")
 	char path[2048] = {};
-	sprintf_s(path, 2048,   "../Assets/%s", filename);
+	sprintf_s(path, 2048, "../Assets/%s", filename);
 
 	// 파일 열기.
 	FILE* file = nullptr;
@@ -178,91 +178,11 @@ bool SokobanLevel::CanMove(
 	const Wanted::Vector2& playerPosition,
 	const Wanted::Vector2& nextPosition)
 {
-	//// 레벨에 있는 박스 액터 모으기.
-	//// 박스는 플레이어가 밀기 등 추가적으로 처리해야하기 때문.
-	//std::vector<Actor*> boxes;
-
-	//// 레벨에 배치된 전체 액터를 순회하면서 박스 찾기.
-	//for (Actor* const actor : actors)
-	//{
-	//	// 액터가 박스 타입인지 확인.
-	//	if (actor->IsTypeOf<Box>())
-	//	{
-	//		boxes.emplace_back(actor);
-	//		continue;
-	//	}
-	//}
-
-	//// 이동하려는 위치에 박스가 있는지 확인.
-	//Actor* boxActor = nullptr;
-	//for (Actor* const box : boxes)
-	//{
-	//	// 위치 비교.
-	//	if (box->GetPosition() == nextPosition)
-	//	{
-	//		boxActor = box;
-	//		break;
-	//	}
-	//}
-
-	//// 경우의 수 처리.
-	//// 이동하려는 곳에 박스가 있는 경우.
-	//if (boxActor)
-	//{
-	//	// #1: 박스를 이동시키려는 위치에 다른 박스가 또 있는지 확인.
-	//	// 두 위치 사이에서 이동 방향 구하기 (벡터의 뺄셈 활용).
-	//	// 이동 로직에서 두 벡터를 더한다는 것은
-	//	// 둘 중 하나는 위치(Location)이고 다른 하나는 벡터(Vector).
-	//	Vector2 direction = nextPosition - playerPosition;
-	//	Vector2 newPosition = boxActor->GetPosition() + direction;
-
-	//	// 박스 검색.
-	//	for (Actor* const otherBox : boxes)
-	//	{
-	//		// 앞에서 검색한 박스와 같다면 건너뛰기.
-	//		if (otherBox == boxActor)
-	//		{
-	//			continue;
-	//		}
-
-	//		// 다른 박스가 있는지 확인.
-	//		if (otherBox->GetPosition() == newPosition)
-	//		{
-	//			// 두 개의 박스가 겹쳐진 방향으로는 이동 못함.
-	//			return false;
-	//		}
-	//	}
-
-	//	// 검색.
-	//	for (Actor* const actor : actors)
-	//	{
-	//		if (actor->GetPosition() == newPosition)
-	//		{
-	//			// #2: 벽이면 이동 불가.
-	//			if (actor->IsTypeOf<Wall>())
-	//			{
-	//				return false;
-	//			}
-
-	//			// #3: 그라운드 또는 타겟이면 이동 가능.
-	//if (actor->IsTypeOf<Ground>()
-	//	|| actor->IsTypeOf<Target>())
-	//{
-	//	//// 박스 이동 처리.
-	//	//boxActor->SetPosition(newPosition);
-
-		// 게임 점수 확인.
+	// 게임 점수 확인.
 	isGameClear = CheckGameClear();
 
-	//	// 플레이어 이동 가능.
-	//	return true;
-	//}
-	//	}
-	//}
-//}
-
-// 이동하려는 곳에 박스가 없는 경우.
-// -> 이동하려는 곳에 있는 액터가 벽이 아니면 이동 가능.
+	// 이동하려는 곳에 박스가 없는 경우.
+	// -> 이동하려는 곳에 있는 액터가 벽이 아니면 이동 가능.
 	if (isGameClear)
 	{
 		return false;

@@ -13,40 +13,49 @@ namespace Wanted
 	{
 	}
 
-	AStar::~AStar()
-	{
-		// 메모리 정리.
-		for (Node* node : openList)
-		{
-			SafeDelete(node);
-		}
-		openList.clear();
+AStar::~AStar()
+{
+// 메모리 정리.
+for (Node* node : openList)
+{
+SafeDelete(node);
+}
+openList.clear();
 
-		for (Node* node : closedList)
-		{
-			SafeDelete(node);
-		}
-		closedList.clear();
-	}
+for (Node* node : closedList)
+{
+SafeDelete(node);
+}
+closedList.clear();
 
-	void AStar::ClearLists()
-	{
-		// 벡터에 담긴 모든 노드 객체를 메모리에서 해제.
-		for (Node* node : openList)
-		{
-			SafeDelete(node);
-		}
+// goalNode는 open/closed 리스트에 들어가지 않으므로 별도 해제.
+SafeDelete(goalNode);
+goalNode = nullptr;
+startNode = nullptr;
+}
 
-		for (Node* node : closedList)
-		{
-			SafeDelete(node);
-		}
-		// 벡터 자체를 비움.
-		openList.clear();
-		closedList.clear();
-		startNode = nullptr;
-		goalNode = nullptr;
-	}
+void AStar::ClearLists()
+{
+// 벡터에 담긴 모든 노드 객체를 메모리에서 해제.
+for (Node* node : openList)
+{
+SafeDelete(node);
+}
+
+for (Node* node : closedList)
+{
+SafeDelete(node);
+}
+
+// goalNode는 open/closed 리스트에 들어가지 않으므로 별도 해제.
+SafeDelete(goalNode);
+
+// 벡터 자체를 비움.
+openList.clear();
+closedList.clear();
+startNode = nullptr;
+goalNode = nullptr;
+}
 
 	std::vector<Vector2> AStar::FindPath(
 		const Vector2& startPos,
@@ -57,12 +66,13 @@ namespace Wanted
 		ClearLists();
 		visitedNodes.clear();
 
-		// 시작/목표 노드 저장.
-		startNode = new Node(startPos);
-		goalNode = new Node(goalPos);
-
 		if (grid.empty() || grid[0].empty())
 			return {};
+		// 시작/목표 노드 저장.
+
+		startNode = new Node(startPos);
+		// goalNode는 경로 탐색에 사용하지 않으므로 생성하지 않음.
+		goalNode = nullptr;
 
 		// 시작 노드를 열린리스트에 추가 및 탐색 시작.
 		openList.push_back(startNode);
@@ -113,7 +123,7 @@ namespace Wanted
 			openList.erase(openList.begin() + currentIndex);
 			closedList.push_back(currentNode);
 
-			// 방문 처리를 위해 열린 리스트에서 제거.
+			// 방문 처리용으로 열린 리스트에서 제거.
 			//for (auto iterator = openList.begin();
 			//	iterator != openList.end();
 			//	++iterator)
@@ -126,7 +136,7 @@ namespace Wanted
 			//	}
 			//}
 
-			// 현재 노드를 방문 노드에 추가.
+			// 현재 노드를 닫힌 리스트에 추가.
 			//closedList.emplace_back(currentNode);
 
 
@@ -182,6 +192,7 @@ namespace Wanted
 			}
 		}
 		// 경로를 찾지 못한 경우 (openList가 빈 상태로 루프 종료).
+		ClearLists();
 		return {};
 	}
 
